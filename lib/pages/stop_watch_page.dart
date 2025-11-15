@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:confetti/confetti.dart';
-import 'package:count_flow/widgets/primay_card.dart';
+import 'package:sleek_circular_slider/sleek_circular_slider.dart';
+import 'package:flutter/services.dart';
 
 class StopwatchPage extends StatefulWidget {
   @override
@@ -13,7 +14,6 @@ class _StopwatchPageState extends State<StopwatchPage> {
   Timer? _timer;
 
   int? targetSeconds;
-  final TextEditingController targetController = TextEditingController();
   late ConfettiController _confettiController;
 
   @override
@@ -27,7 +27,6 @@ class _StopwatchPageState extends State<StopwatchPage> {
     _timer?.cancel();
     _stopwatch.stop();
     _confettiController.dispose();
-    targetController.dispose();
     super.dispose();
   }
 
@@ -40,25 +39,24 @@ class _StopwatchPageState extends State<StopwatchPage> {
       _stopwatch.start();
       _timer = Timer.periodic(Duration(milliseconds: 30), (_) {
         if (mounted) setState(() {});
+
         if (targetSeconds != null) {
-          final elapsedSec = _stopwatch.elapsed.inSeconds;
-          if (elapsedSec >= targetSeconds!) {
+          final elapsed = _stopwatch.elapsed.inSeconds;
+
+          if (elapsed >= targetSeconds!) {
             _stopwatch.stop();
             _timer?.cancel();
+
             _confettiController.play();
 
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Meta alcançada! 🎉")),
+              SnackBar(
+                  content: Text("Meta alcançada! 🎉"),
+                  backgroundColor: Colors.blue[800]),
             );
 
             Future.delayed(Duration(seconds: 2), () {
-              if (mounted) {
-                setState(() {
-                  _reset();
-                  targetSeconds = null;
-                  targetController.clear();
-                });
-              }
+              if (mounted) _reset();
             });
           }
         }
@@ -69,99 +67,173 @@ class _StopwatchPageState extends State<StopwatchPage> {
 
   void _reset() {
     _stopwatch.reset();
-    if (!mounted) return;
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
-  String _formatDuration(Duration d) {
+  String _fmt(Duration d) {
     final h = d.inHours.toString().padLeft(2, '0');
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    final c = (d.inMilliseconds.remainder(1000) / 10)
-        .floor()
-        .toString()
-        .padLeft(2, '0');
-    return "$h:$m:$s.$c";
+    final cs =
+        (d.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
+    return "$h:$m:$s.$cs";
+  }
+
+  void _openTargetDialog() {
+    final controller = TextEditingController(
+      text: targetSeconds?.toString() ?? "",
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text("Definir meta (segundos)"),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: "Meta",
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text("Cancelar"),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+            ElevatedButton(
+              child: Text("Salvar"),
+              onPressed: () {
+                final n = int.tryParse(controller.text);
+                if (n != null && n > 0) {
+                  setState(() => targetSeconds = n);
+                }
+                Navigator.pop(ctx);
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTimerDisplay() {
+    return Text(
+      _fmt(_stopwatch.elapsed),
+      style: const TextStyle(
+        fontSize: 40,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildSlider(BuildContext context) {
+    if (targetSeconds == null) return SizedBox.shrink();
+
+    final secondsElapsed = _stopwatch.elapsed.inSeconds.toDouble();
+    final sliderMax = targetSeconds!.toDouble();
+
+    return SizedBox(
+      width: 260,
+      height: 260,
+      child: SleekCircularSlider(
+        min: 0,
+        max: sliderMax,
+        initialValue: secondsElapsed.clamp(0, sliderMax),
+        appearance: CircularSliderAppearance(
+          animationEnabled: false,
+          customWidths: CustomSliderWidths(
+            trackWidth: 10,
+            progressBarWidth: 12,
+          ),
+          customColors: CustomSliderColors(
+            trackColor: Colors.grey.shade300,
+            progressBarColor: Theme.of(context).colorScheme.primary,
+          ),
+          infoProperties: InfoProperties(
+            mainLabelStyle: TextStyle(
+              fontSize: 38,
+              fontWeight: FontWeight.bold,
+            ),
+            modifier: (_) => _fmt(_stopwatch.elapsed),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final display = _formatDuration(_stopwatch.elapsed);
-    final running = _stopwatch.isRunning;
 
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        Align(
-          alignment: Alignment.topCenter,
-          child: ConfettiWidget(
-            confettiController: _confettiController,
-            blastDirectionality: BlastDirectionality.explosive,
-            shouldLoop: false,
-            emissionFrequency: 0.05,
-            numberOfParticles: 20,
-          ),
+        ConfettiWidget(
+          confettiController: _confettiController,
+          blastDirectionality: BlastDirectionality.explosive,
         ),
         Center(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.6,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                PrimaryCard(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.timer, size: 56, color: Colors.white),
-                      SizedBox(height: 12),
-                      Text(display,
-                          style: theme.textTheme.displayLarge?.copyWith(
-                            fontSize: 44,
-                            color: Colors.white,
-                          )),
-                    ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildSlider(context),
+              const SizedBox(height: 10),
+              if (targetSeconds == null) _buildTimerDisplay(),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    targetSeconds != null
+                        ? "Meta: ${targetSeconds}s"
+                        : "Nenhuma meta definida",
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                SizedBox(height: 16),
-                SizedBox(
-                  width: 220,
-                  child: TextField(
-                    controller: targetController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: "Meta (segundos)",
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      filled: true,
-                      fillColor: theme.colorScheme.primaryContainer
-                          .withValues(alpha: 0.3),
+                  if (targetSeconds != null)
+                    Padding(
+                      padding: EdgeInsets.only(left: 5.0),
+                      child: InkWell(
+                        onTap: () => setState(() => targetSeconds = null),
+                        child: Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                        ),
+                      ),
                     ),
-                    onChanged: (v) {
-                      final n = int.tryParse(v);
-                      targetSeconds = (n != null && n > 0) ? n : null;
-                    },
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _toggleStartStop,
+                    icon: Icon(
+                      _stopwatch.isRunning ? Icons.pause : Icons.play_arrow,
+                    ),
+                    label: Text(_stopwatch.isRunning ? "Pausar" : "Iniciar"),
                   ),
-                ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _toggleStartStop,
-                      icon: Icon(running ? Icons.pause : Icons.play_arrow),
-                      label: Text(running ? 'Pausar' : 'Iniciar'),
-                    ),
-                    SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: _reset,
-                      icon: Icon(Icons.refresh),
-                      label: Text('Reset'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _reset,
+                    icon: Icon(Icons.refresh),
+                    label: Text("Resetar"),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _openTargetDialog,
+                    icon: Icon(Icons.flag_outlined),
+                    label: Text("Meta"),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
