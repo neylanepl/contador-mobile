@@ -217,6 +217,27 @@ class FavoritesPage extends StatelessWidget {
   }
 }
 
+/// PrimaryCard: reusable card with consistent sizing and primary color.
+class PrimaryCard extends StatelessWidget {
+  final Widget child;
+  const PrimaryCard({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final maxWidth = MediaQuery.of(context).size.width * 0.8;
+    final width = maxWidth > 420 ? 420.0 : maxWidth;
+    return Card(
+      color: theme.colorScheme.primary,
+      child: SizedBox(
+        width: width,
+        height: 220,
+        child: Center(child: Padding(padding: const EdgeInsets.all(12.0), child: child)),
+      ),
+    );
+  }
+}
+
 class ClockPage extends StatefulWidget {
   @override
   State<ClockPage> createState() => _ClockPageState();
@@ -279,27 +300,31 @@ class _ClockPageState extends State<ClockPage> {
         ) ?? TextStyle(fontSize: 20, color: Colors.white);
 
     return Center(
-      child: Card(
-        color: theme.colorScheme.primary,
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.access_time,
-                size: 56,
-                color: Colors.white,
-                semanticLabel: 'Ícone de relógio',
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            PrimaryCard(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.access_time,
+                    size: 56,
+                    color: Colors.white,
+                    semanticLabel: 'Ícone de relógio',
+                  ),
+                  SizedBox(height: 12),
+                  Text(_timeString, style: timeStyle, semanticsLabel: 'Hora atual $_timeString'),
+                  SizedBox(height: 12),
+                  Text(_weekdayString, style: dayStyle, semanticsLabel: 'Dia da semana $_weekdayString'),
+                  SizedBox(height: 8),
+                  Text(_dateString, style: dayStyle, semanticsLabel: 'Data $_dateString'),
+                ],
               ),
-              SizedBox(height: 12),
-              Text(_timeString, style: timeStyle, semanticsLabel: 'Hora atual $_timeString'),
-              SizedBox(height: 12),
-              Text(_weekdayString, style: dayStyle, semanticsLabel: 'Dia da semana $_weekdayString'),
-              SizedBox(height: 8),
-              Text(_dateString, style: dayStyle, semanticsLabel: 'Data $_dateString'),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -368,35 +393,39 @@ class _StopwatchPageState extends State<StopwatchPage> {
     final display = _formatDuration(_stopwatch.elapsed);
 
     return Center(
-      child: Card(
-        color: theme.colorScheme.primary,
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.timer, size: 56, color: Colors.white, semanticLabel: 'Ícone de cronômetro'),
-              SizedBox(height: 12),
-              Text(display, style: timeStyle, semanticsLabel: 'Cronômetro $display'),
-              SizedBox(height: 16),
-              Row(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            PrimaryCard(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: _toggleStartStop,
-                    icon: Icon(running ? Icons.pause : Icons.play_arrow),
-                    label: Text(running ? 'Pausar' : 'Iniciar'),
-                  ),
-                  SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: _reset,
-                    icon: Icon(Icons.refresh),
-                    label: Text('Reset'),
-                  ),
+                  Icon(Icons.timer, size: 56, color: Colors.white, semanticLabel: 'Ícone de cronômetro'),
+                  SizedBox(height: 12),
+                  Text(display, style: timeStyle, semanticsLabel: 'Cronômetro $display'),
                 ],
               ),
-            ],
-          ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _toggleStartStop,
+                  icon: Icon(running ? Icons.pause : Icons.play_arrow),
+                  label: Text(running ? 'Pausar' : 'Iniciar'),
+                ),
+                SizedBox(width: 12),
+                ElevatedButton.icon(
+                  onPressed: _reset,
+                  icon: Icon(Icons.refresh),
+                  label: Text('Reset'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -419,20 +448,24 @@ class GeneratorPage extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  appState.decrement();
-                },
-                icon: Icon(Icons.remove),
-                label: Text('Decrementar'),
+              Tooltip(
+                message: 'Decrementar',
+                child: ElevatedButton(
+                  onPressed: () {
+                    appState.decrement();
+                  },
+                  child: Icon(Icons.remove),
+                ),
               ),
               SizedBox(width: 20),
-              ElevatedButton.icon(
-                onPressed: () {
-                  appState.increment();
-                },
-                icon: Icon(Icons.add),
-                label: Text('Incrementar'),
+              Tooltip(
+                message: 'Incrementar',
+                child: ElevatedButton(
+                  onPressed: () {
+                    appState.increment();
+                  },
+                  child: Icon(Icons.add),
+                ),
               ),
             ],
           ),
@@ -459,16 +492,23 @@ class BigCard extends StatelessWidget {
       color: theme.colorScheme.onPrimary,
       fontSize: 36,
     );
-    return Card(
-      color: theme.colorScheme.primary,    // ← And also this.
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        // ↓ Make the following change.
-        child: Text(
-          value.toString(),
-          style: style,
-          semanticsLabel: "Counter: $value",
-        ),
+    return PrimaryCard(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.calculate,
+            size: 56,
+            color: Colors.white,
+            semanticLabel: 'Ícone de contador',
+          ),
+          SizedBox(height: 12),
+          Text(
+            value.toString(),
+            style: style,
+            semanticsLabel: 'Contador $value',
+          ),
+        ],
       ),
     );
   }
