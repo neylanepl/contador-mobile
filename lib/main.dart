@@ -110,12 +110,16 @@ class _MyHomePageState extends State<MyHomePage> {
                     extended: true,
                     destinations: [
                       NavigationRailDestination(
-                        icon: Icon(Icons.home),
-                        label: Text('Home'),
+                        icon: Icon(Icons.calculate),
+                        label: Text('Contador'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(Icons.favorite),
-                        label: Text('Favorites'),
+                        icon: Icon(Icons.timer),
+                        label: Text('Cronômetro'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.access_time),
+                        label: Text('Relógio'),
                       ),
                     ],
                     selectedIndex: selectedIndex,
@@ -164,15 +168,15 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               destinations: [
                 NavigationDestination(
-                  icon: Icon(Icons.home),
+                  icon: Icon(Icons.calculate),
                   label: 'Contador',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.favorite),
+                  icon: Icon(Icons.timer),
                   label: 'Cronômetro',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.favorite),
+                  icon: Icon(Icons.access_time),
                   label: 'Relógio',
                 ),
               ],
