@@ -1,120 +1,173 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../state/app_state.dart';
-import '../widgets/big_card.dart';
 
 class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var appState = context.watch<MyAppState>();
+    final appState = context.watch<MyAppState>();
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                decoration: BoxDecoration(
-                  color:
-                      theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  "Incremento: ${appState.step}",
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "${appState.counter}",
+              style: TextStyle(
+                fontSize: 72,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
               ),
-              SizedBox(width: 16),
-              SizedBox(
-                width: 110,
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: "Valor",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: theme.colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.4),
-                  ),
-                  onChanged: (text) {
-                    final n = int.tryParse(text);
-                    if (n != null && n > 0) appState.setStep(n);
-                  },
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 24),
-          BigCard(value: appState.counter),
-          SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _actionButton(
-                icon: Icons.remove_circle_outline,
-                onPressed: appState.decrement,
-                label: "Diminuir",
-                theme: theme,
-              ),
-              SizedBox(width: 16),
-              _actionButton(
-                icon: Icons.add_circle_outline,
-                onPressed: appState.increment,
-                label: "Aumentar",
-                theme: theme,
-              ),
-            ],
-          ),
-          SizedBox(height: 22),
-          ElevatedButton.icon(
-            onPressed: appState.resetCounter,
-            icon: Icon(Icons.refresh),
-            label: Text("Zerar contador"),
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              backgroundColor: theme.colorScheme.errorContainer,
-              foregroundColor: theme.colorScheme.onErrorContainer,
             ),
-          ),
-        ],
+            const SizedBox(height: 40),
+            Container(
+              width: 260,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      _gridButton(
+                        context,
+                        icon: Icons.remove,
+                        label: "Diminuir",
+                        onTap: appState.decrement,
+                        showBottomLine: true,
+                        showRightLine: true,
+                      ),
+                      _gridButton(
+                        context,
+                        icon: Icons.add,
+                        label: "Somar",
+                        onTap: appState.increment,
+                        showBottomLine: true,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      _gridButton(
+                        context,
+                        icon: Icons.edit,
+                        label: "Incremento",
+                        onTap: () => _editStepDialog(context, appState),
+                        showRightLine: true,
+                      ),
+                      _gridButton(
+                        context,
+                        icon: Icons.refresh,
+                        label: "Resetar",
+                        onTap: appState.resetCounter,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _actionButton({
+  Widget _gridButton(
+    BuildContext context, {
     required IconData icon,
-    required VoidCallback onPressed,
     required String label,
-    required ThemeData theme,
+    required VoidCallback onTap,
+    bool showRightLine = false,
+    bool showBottomLine = false,
   }) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+    final theme = Theme.of(context);
+
+    return Expanded(
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            right: showRightLine
+                ? BorderSide(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    width: 1)
+                : BorderSide.none,
+            bottom: showBottomLine
+                ? BorderSide(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    width: 1)
+                : BorderSide.none,
+          ),
         ),
-        backgroundColor: theme.colorScheme.primaryContainer,
-        foregroundColor: theme.colorScheme.onPrimaryContainer,
+        child: InkWell(
+          borderRadius: BorderRadius.zero,
+          onTap: onTap,
+          child: SizedBox(
+            height: 110,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 34, color: theme.colorScheme.primary),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20),
-          SizedBox(width: 8),
-          Text(label),
-        ],
-      ),
+    );
+  }
+
+  void _editStepDialog(BuildContext context, MyAppState appState) {
+    final controller = TextEditingController(text: appState.step.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Alterar incremento"),
+          content: TextField(
+            controller: controller,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: "Incremento",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text("Cancelar"),
+              onPressed: () => Navigator.pop(context),
+            ),
+            ElevatedButton(
+              child: Text("Salvar"),
+              onPressed: () {
+                final n = int.tryParse(controller.text);
+                if (n != null && n > 0) {
+                  appState.setStep(n);
+                }
+                Navigator.pop(context);
+              },
+            )
+          ],
+        );
+      },
     );
   }
 }
