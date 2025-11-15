@@ -1,5 +1,6 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -81,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
         page = FavoritesPage();
         break;
       case 2:
-        page = FavoritesPage();
+        page = ClockPage();
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
@@ -212,6 +213,95 @@ class FavoritesPage extends StatelessWidget {
             title: Text(pair.asLowerCase),
           ),
       ],
+    );
+  }
+}
+
+class ClockPage extends StatefulWidget {
+  @override
+  State<ClockPage> createState() => _ClockPageState();
+}
+
+class _ClockPageState extends State<ClockPage> {
+  late DateTime now;
+  Timer? _timer;
+
+  static const _weekdays = [
+    'Segunda-feira',
+    'Terça-feira',
+    'Quarta-feira',
+    'Quinta-feira',
+    'Sexta-feira',
+    'Sábado',
+    'Domingo',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    now = DateTime.now();
+    _timer = Timer.periodic(Duration(seconds: 1), (_) {
+      setState(() {
+        now = DateTime.now();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _two(int n) => n.toString().padLeft(2, '0');
+
+  String get _timeString => '${_two(now.hour)}:${_two(now.minute)}:${_two(now.second)}';
+
+  String get _weekdayString {
+    // DateTime.weekday: Monday = 1, Sunday = 7
+    final idx = now.weekday - 1;
+    if (idx >= 0 && idx < _weekdays.length) return _weekdays[idx];
+    return '';
+  }
+
+  String get _dateString => '${_two(now.day)}/${_two(now.month)}/${now.year}';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final timeStyle = theme.textTheme.displayLarge?.copyWith(
+          fontSize: 48,
+          color: Colors.white,
+        ) ?? TextStyle(fontSize: 48, color: Colors.white);
+    final dayStyle = theme.textTheme.titleLarge?.copyWith(
+          fontSize: 20,
+          color: Colors.white,
+        ) ?? TextStyle(fontSize: 20, color: Colors.white);
+
+    return Center(
+      child: Card(
+        color: theme.colorScheme.primary,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.access_time,
+                size: 56,
+                color: Colors.white,
+                semanticLabel: 'Ícone de relógio',
+              ),
+              SizedBox(height: 12),
+              Text(_timeString, style: timeStyle, semanticsLabel: 'Hora atual $_timeString'),
+              SizedBox(height: 12),
+              Text(_weekdayString, style: dayStyle, semanticsLabel: 'Dia da semana $_weekdayString'),
+              SizedBox(height: 8),
+              Text(_dateString, style: dayStyle, semanticsLabel: 'Data $_dateString'),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
