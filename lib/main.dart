@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
-        title: 'Namer App',
+        title: 'Contador',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -27,6 +27,21 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
+
+  // Contador
+  int counter = 0;
+
+  void increment() {
+    counter++;
+    notifyListeners();
+  }
+
+  void decrement() {
+    if (counter > 0) {
+      counter--;
+      notifyListeners();
+    }
+  }
 
   // ↓ Add this.
   void getNext() {
@@ -65,46 +80,106 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         page = FavoritesPage();
         break;
+      case 2:
+        page = FavoritesPage();
+        break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Wide layout: show NavigationRail on the left
+        if (constraints.maxWidth >= 600) {
+          return Scaffold(
+                appBar: AppBar(
+                  centerTitle: true,
+                  title: Text(
+                    "Contador",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                ),
+            body: Row(
+              children: [
+                SafeArea(
+                  child: NavigationRail(
+                    extended: true,
+                    destinations: [
+                      NavigationRailDestination(
+                        icon: Icon(Icons.home),
+                        label: Text('Home'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.favorite),
+                        label: Text('Favorites'),
+                      ),
+                    ],
+                    selectedIndex: selectedIndex,
+                    onDestinationSelected: (value) {
+                      setState(() {
+                        selectedIndex = value;
+                      });
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    child: page,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Narrow layout: show content and a bottom NavigationBar
         return Scaffold(
-          body: Row(
-            children: [
-              SafeArea(
-                child: NavigationRail(
-                  extended: constraints.maxWidth >= 600,
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text('Home'),
+                appBar: AppBar(
+                  centerTitle: true,
+                  title: Text(
+                    "Contador",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.favorite),
-                      label: Text('Favorites'),
-                    ),
-                  ],
-                  selectedIndex: selectedIndex,
-                  onDestinationSelected: (value) {
-                    setState(() {
-                      selectedIndex = value;
-                    });
-                  },
+                  ),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
                 ),
-              ),
-              Expanded(
-                child: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  child: page,  // ← Here.
+          body: Container(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: page,
+          ),
+          bottomNavigationBar: SafeArea(
+            child: NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (value) {
+                setState(() {
+                  selectedIndex = value;
+                });
+              },
+              destinations: [
+                NavigationDestination(
+                  icon: Icon(Icons.home),
+                  label: 'Contador',
                 ),
-              ),
-            ],
+                NavigationDestination(
+                  icon: Icon(Icons.favorite),
+                  label: 'Cronômetro',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.favorite),
+                  label: 'Relógio',
+                ),
+              ],
+            ),
           ),
         );
-      }
+      },
     );
   }
 }
@@ -141,37 +216,32 @@ class GeneratorPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    var pair = appState.current;
-
-    IconData icon;
-    if (appState.favorites.contains(pair)) {
-      icon = Icons.favorite;
-    } else {
-      icon = Icons.favorite_border;
-    }
+    // Use the counter from appState
+    final value = appState.counter;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          BigCard(pair: pair),
-          SizedBox(height: 10),
+          BigCard(value: value),
+          SizedBox(height: 20),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton.icon(
                 onPressed: () {
-                  appState.toggleFavorite();
+                  appState.decrement();
                 },
-                icon: Icon(icon),
-                label: Text('Like'),
+                icon: Icon(Icons.remove),
+                label: Text('Decrementar'),
               ),
-              SizedBox(width: 10),
-              ElevatedButton(
+              SizedBox(width: 20),
+              ElevatedButton.icon(
                 onPressed: () {
-                  appState.getNext();
+                  appState.increment();
                 },
-                child: Text('Next'),
+                icon: Icon(Icons.add),
+                label: Text('Incrementar'),
               ),
             ],
           ),
@@ -185,10 +255,10 @@ class GeneratorPage extends StatelessWidget {
 class BigCard extends StatelessWidget {
   const BigCard({
     super.key,
-    required this.pair,
+    required this.value,
   });
 
-  final WordPair pair;
+  final int value;
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +266,7 @@ class BigCard extends StatelessWidget {
     // ↓ Add this.
     final style = theme.textTheme.displayMedium!.copyWith(
       color: theme.colorScheme.onPrimary,
+      fontSize: 36,
     );
     return Card(
       color: theme.colorScheme.primary,    // ← And also this.
@@ -203,9 +274,9 @@ class BigCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         // ↓ Make the following change.
         child: Text(
-          pair.asLowerCase,
+          value.toString(),
           style: style,
-          semanticsLabel: "${pair.first} ${pair.second}",
+          semanticsLabel: "Counter: $value",
         ),
       ),
     );
