@@ -79,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
         page = GeneratorPage();
         break;
       case 1:
-        page = FavoritesPage();
+        page = StopwatchPage();
         break;
       case 2:
         page = ClockPage();
@@ -298,6 +298,103 @@ class _ClockPageState extends State<ClockPage> {
               Text(_weekdayString, style: dayStyle, semanticsLabel: 'Dia da semana $_weekdayString'),
               SizedBox(height: 8),
               Text(_dateString, style: dayStyle, semanticsLabel: 'Data $_dateString'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class StopwatchPage extends StatefulWidget {
+  @override
+  State<StopwatchPage> createState() => _StopwatchPageState();
+}
+
+class _StopwatchPageState extends State<StopwatchPage> {
+  final Stopwatch _stopwatch = Stopwatch();
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _stopwatch.stop();
+    super.dispose();
+  }
+
+  void _toggleStartStop() {
+    if (_stopwatch.isRunning) {
+      _stopwatch.stop();
+      _timer?.cancel();
+      _timer = null;
+    } else {
+      _stopwatch.start();
+      _timer = Timer.periodic(Duration(milliseconds: 30), (_) {
+        // just rebuild to update display
+        if (mounted) setState(() {});
+      });
+    }
+    setState(() {});
+  }
+
+  void _reset() {
+    _stopwatch.reset();
+    if (!_stopwatch.isRunning) {
+      setState(() {});
+    }
+  }
+
+  String _formatDuration(Duration d) {
+    final hours = d.inHours;
+    final minutes = d.inMinutes.remainder(60);
+    final seconds = d.inSeconds.remainder(60);
+    final centis = (d.inMilliseconds.remainder(1000) / 10).floor();
+    final hStr = hours.toString().padLeft(2, '0');
+    final mStr = minutes.toString().padLeft(2, '0');
+    final sStr = seconds.toString().padLeft(2, '0');
+    final cStr = centis.toString().padLeft(2, '0');
+    return '$hStr:$mStr:$sStr.$cStr';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final timeStyle = theme.textTheme.displayLarge?.copyWith(
+          fontSize: 44,
+          color: Colors.white,
+        ) ?? TextStyle(fontSize: 44, color: Colors.white);
+
+    final running = _stopwatch.isRunning;
+    final display = _formatDuration(_stopwatch.elapsed);
+
+    return Center(
+      child: Card(
+        color: theme.colorScheme.primary,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.timer, size: 56, color: Colors.white, semanticLabel: 'Ícone de cronômetro'),
+              SizedBox(height: 12),
+              Text(display, style: timeStyle, semanticsLabel: 'Cronômetro $display'),
+              SizedBox(height: 16),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _toggleStartStop,
+                    icon: Icon(running ? Icons.pause : Icons.play_arrow),
+                    label: Text(running ? 'Pausar' : 'Iniciar'),
+                  ),
+                  SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    onPressed: _reset,
+                    icon: Icon(Icons.refresh),
+                    label: Text('Reset'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
