@@ -15,6 +15,7 @@ class BigCard extends StatelessWidget {
     );
 
     return PrimaryCard(
+      color: Colors.blue,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
