@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../pages/generator_page.dart';
 import '../pages/clock_page.dart';
 import '../pages/stop_watch_page.dart';
+import '../utils/logger.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -26,6 +27,12 @@ class _MyHomePageState extends State<MyHomePage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    logInfo('MyHomePage inicializada');
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -40,6 +47,8 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) {
+          final label = (i >= 0 && i < pageTitles.length) ? pageTitles[i] : 'índice $i';
+          logDebug('Navegação selecionada: $label');
           setState(() => selectedIndex = i);
         },
         destinations: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:count_flow/widgets/primay_card.dart';
+import '../utils/logger.dart';
 
 class ClockPage extends StatefulWidget {
   @override
@@ -38,11 +39,13 @@ class _ClockPageState extends State<ClockPage> {
     _timer = Timer.periodic(Duration(seconds: 1), (_) {
       setState(() => now = DateTime.now().toUtc());
     });
+    logInfo('Relógio inicializado com fuso $selectedZone');
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    logDebug('Relógio descartado');
     super.dispose();
   }
 
@@ -122,7 +125,10 @@ class _ClockPageState extends State<ClockPage> {
                       .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                       .toList(),
                   onChanged: (v) {
-                    if (v != null) setState(() => selectedZone = v);
+                    if (v != null) {
+                      logInfo('Fuso horário alterado: $v');
+                      setState(() => selectedZone = v);
+                    }
                   },
                 ),
               ),

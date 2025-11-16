@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../state/app_state.dart';
+import '../utils/logger.dart';
 
 class GeneratorPage extends StatelessWidget {
   @override
@@ -41,7 +42,10 @@ class GeneratorPage extends StatelessWidget {
                         context,
                         icon: Icons.remove,
                         label: "Diminuir",
-                        onTap: appState.decrement,
+                        onTap: () {
+                          logDebug('Botão diminuir foi pressionado');
+                          appState.decrement();
+                        },
                         showBottomLine: true,
                         showRightLine: true,
                       ),
@@ -49,7 +53,10 @@ class GeneratorPage extends StatelessWidget {
                         context,
                         icon: Icons.add,
                         label: "Somar",
-                        onTap: appState.increment,
+                        onTap: () {
+                          logDebug('Botão somar foi pressionado');
+                          appState.increment();
+                        },
                         showBottomLine: true,
                       ),
                     ],
@@ -60,14 +67,20 @@ class GeneratorPage extends StatelessWidget {
                         context,
                         icon: Icons.edit,
                         label: "Incremento",
-                        onTap: () => _editStepDialog(context, appState),
+                        onTap: () {
+                          logInfo('Abrir modal de alteração do incremento');
+                          _editStepDialog(context, appState);
+                        },
                         showRightLine: true,
                       ),
                       _gridButton(
                         context,
                         icon: Icons.refresh,
                         label: "Resetar",
-                        onTap: appState.resetCounter,
+                        onTap: () {
+                          logInfo('Botão reset foi pressionado');
+                          appState.resetCounter();
+                        },
                       ),
                     ],
                   ),
@@ -153,7 +166,10 @@ class GeneratorPage extends StatelessWidget {
           actions: [
             TextButton(
               child: Text("Cancelar"),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                logDebug('Modal de alteração cancelado');
+                Navigator.pop(context);
+              },
             ),
             ElevatedButton(
               child: Text("Salvar"),
@@ -161,6 +177,7 @@ class GeneratorPage extends StatelessWidget {
                 final n = int.tryParse(controller.text);
                 if (n != null && n > 0) {
                   appState.setStep(n);
+                  logInfo('Incremento salvo: $n');
                 }
                 Navigator.pop(context);
               },

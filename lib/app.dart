@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'state/app_state.dart';
 import 'pages/home_page.dart';
+import 'utils/logger.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    logInfo('Construindo MyApp');
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(

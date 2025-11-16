@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import '../utils/logger.dart';
 
 class PrimaryCard extends StatelessWidget {
   final Widget child;
@@ -16,6 +17,8 @@ class PrimaryCard extends StatelessWidget {
     Theme.of(context);
     final maxWidth = MediaQuery.of(context).size.width * 0.8;
     final width = maxWidth > 420 ? 420.0 : maxWidth;
+
+  logVerbose('PrimaryCard criado com largura=$width');
 
     return Card(
       color: color,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:confetti/confetti.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 import 'package:flutter/services.dart';
+import '../utils/logger.dart';
 
 class StopwatchPage extends StatefulWidget {
   @override
@@ -20,6 +21,7 @@ class _StopwatchPageState extends State<StopwatchPage> {
   void initState() {
     super.initState();
     _confettiController = ConfettiController(duration: Duration(seconds: 2));
+    logInfo('Cronômetro inicializado');
   }
 
   @override
@@ -27,6 +29,7 @@ class _StopwatchPageState extends State<StopwatchPage> {
     _timer?.cancel();
     _stopwatch.stop();
     _confettiController.dispose();
+    logDebug('Cronômetro descartado');
     super.dispose();
   }
 
@@ -35,8 +38,10 @@ class _StopwatchPageState extends State<StopwatchPage> {
       _stopwatch.stop();
       _timer?.cancel();
       _timer = null;
+      logInfo('Cronômetro parado em ${_fmt(_stopwatch.elapsed)}');
     } else {
       _stopwatch.start();
+      logInfo('Cronômetro iniciado');
       _timer = Timer.periodic(Duration(milliseconds: 30), (_) {
         if (mounted) setState(() {});
 
@@ -47,6 +52,7 @@ class _StopwatchPageState extends State<StopwatchPage> {
             _stopwatch.stop();
             _timer?.cancel();
 
+            logInfo('Meta alcançada: ${elapsed}s (meta ${targetSeconds}s)');
             _confettiController.play();
 
             ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +72,7 @@ class _StopwatchPageState extends State<StopwatchPage> {
   }
 
   void _reset() {
+    logDebug('Cronômetro reiniciado a partir de ${_fmt(_stopwatch.elapsed)}');
     _stopwatch.reset();
     if (mounted) setState(() {});
   }
@@ -87,6 +94,7 @@ class _StopwatchPageState extends State<StopwatchPage> {
     showDialog(
       context: context,
       builder: (ctx) {
+        logInfo('Abrir modal de meta');
         return AlertDialog(
           title: Text("Definir meta (segundos)"),
           content: TextField(
@@ -101,7 +109,10 @@ class _StopwatchPageState extends State<StopwatchPage> {
           actions: [
             TextButton(
               child: Text("Cancelar"),
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: () {
+                logDebug('Modal de meta cancelado');
+                Navigator.pop(ctx);
+              },
             ),
             ElevatedButton(
               child: Text("Salvar"),
@@ -109,6 +120,7 @@ class _StopwatchPageState extends State<StopwatchPage> {
                 final n = int.tryParse(controller.text);
                 if (n != null && n > 0) {
                   setState(() => targetSeconds = n);
+                  logInfo('Meta definida para $n segundos');
                 }
                 Navigator.pop(ctx);
               },
