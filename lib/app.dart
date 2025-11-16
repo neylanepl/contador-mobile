@@ -11,7 +11,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     logInfo('Construindo MyApp');
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+      create: (context) {
+        logInfo('Criando instância de MyAppState');
+        return MyAppState();
+      },
       child: MaterialApp(
         title: 'Contador',
         theme: ThemeData(

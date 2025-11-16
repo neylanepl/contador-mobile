@@ -7,6 +7,7 @@ import 'utils/logger.dart';
 
 void main() {
   AppLogger.init();
+  logVerbose('Aplicação iniciada');
 
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.dumpErrorToConsole(details);

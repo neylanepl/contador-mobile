@@ -35,17 +35,30 @@ class _ClockPageState extends State<ClockPage> {
   @override
   void initState() {
     super.initState();
-    now = DateTime.now().toUtc();
-    _timer = Timer.periodic(Duration(seconds: 1), (_) {
-      setState(() => now = DateTime.now().toUtc());
-    });
-    logInfo('Relógio inicializado com fuso $selectedZone');
+    try {
+      now = DateTime.now().toUtc();
+      logVerbose('Hora UTC inicial: $now');
+      _timer = Timer.periodic(Duration(seconds: 1), (_) {
+        try {
+          setState(() => now = DateTime.now().toUtc());
+        } catch (e, stackTrace) {
+          logError('Erro ao atualizar relógio', e, stackTrace);
+        }
+      });
+      logInfo('Relógio inicializado com fuso $selectedZone (offset: ${zones[selectedZone]}h)');
+    } catch (e, stackTrace) {
+      logException('Erro crítico ao inicializar relógio', e, stackTrace);
+    }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    logDebug('Relógio descartado');
+    try {
+      _timer?.cancel();
+      logDebug('Relógio descartado (fuso: $selectedZone)');
+    } catch (e, stackTrace) {
+      logError('Erro ao descartar relógio', e, stackTrace);
+    }
     super.dispose();
   }
 
@@ -125,9 +138,16 @@ class _ClockPageState extends State<ClockPage> {
                       .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                       .toList(),
                   onChanged: (v) {
-                    if (v != null) {
-                      logInfo('Fuso horário alterado: $v');
-                      setState(() => selectedZone = v);
+                    try {
+                      if (v != null && zones.containsKey(v)) {
+                        final oldZone = selectedZone;
+                        logInfo('Fuso horário alterado: $oldZone -> $v (offset: ${zones[v]}h)');
+                        setState(() => selectedZone = v);
+                      } else {
+                        logWarning('Tentativa de selecionar fuso inválido: $v');
+                      }
+                    } catch (e, stackTrace) {
+                      logError('Erro ao alterar fuso horário', e, stackTrace);
                     }
                   },
                 ),

@@ -20,61 +20,87 @@ class _StopwatchPageState extends State<StopwatchPage> {
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: Duration(seconds: 2));
-    logInfo('Cronômetro inicializado');
+    try {
+      _confettiController = ConfettiController(duration: Duration(seconds: 2));
+      logInfo('Cronômetro inicializado');
+      logVerbose('ConfettiController criado com duração de 2s');
+    } catch (e, stackTrace) {
+      logException('Erro crítico ao inicializar cronômetro', e, stackTrace);
+    }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _stopwatch.stop();
-    _confettiController.dispose();
-    logDebug('Cronômetro descartado');
+    try {
+      _timer?.cancel();
+      _stopwatch.stop();
+      _confettiController.dispose();
+      logDebug('Cronômetro descartado (tempo final: ${_fmt(_stopwatch.elapsed)})');
+    } catch (e, stackTrace) {
+      logError('Erro ao descartar cronômetro', e, stackTrace);
+    }
     super.dispose();
   }
 
   void _toggleStartStop() {
-    if (_stopwatch.isRunning) {
-      _stopwatch.stop();
-      _timer?.cancel();
-      _timer = null;
-      logInfo('Cronômetro parado em ${_fmt(_stopwatch.elapsed)}');
-    } else {
-      _stopwatch.start();
-      logInfo('Cronômetro iniciado');
-      _timer = Timer.periodic(Duration(milliseconds: 30), (_) {
-        if (mounted) setState(() {});
+    try {
+      if (_stopwatch.isRunning) {
+        _stopwatch.stop();
+        _timer?.cancel();
+        _timer = null;
+        logInfo('Cronômetro parado em ${_fmt(_stopwatch.elapsed)}');
+      } else {
+        _stopwatch.start();
+        final hasTarget = targetSeconds != null;
+        logInfo('Cronômetro iniciado${hasTarget ? ' com meta de ${targetSeconds}s' : ''}');
+        _timer = Timer.periodic(Duration(milliseconds: 30), (_) {
+          try {
+            if (mounted) setState(() {});
 
-        if (targetSeconds != null) {
-          final elapsed = _stopwatch.elapsed.inSeconds;
+            if (targetSeconds != null) {
+              final elapsed = _stopwatch.elapsed.inSeconds;
 
-          if (elapsed >= targetSeconds!) {
-            _stopwatch.stop();
-            _timer?.cancel();
+              if (elapsed >= targetSeconds!) {
+                _stopwatch.stop();
+                _timer?.cancel();
 
-            logInfo('Meta alcançada: ${elapsed}s (meta ${targetSeconds}s)');
-            _confettiController.play();
+                logInfo('Meta alcançada: ${elapsed}s (meta ${targetSeconds}s)');
+                logDebug('Acionando confetti');
+                _confettiController.play();
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text("Meta alcançada! 🎉"),
-                  backgroundColor: Colors.blue[800]),
-            );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text("Meta alcançada! 🎉"),
+                      backgroundColor: Colors.blue[800]),
+                );
 
-            Future.delayed(Duration(seconds: 2), () {
-              if (mounted) _reset();
-            });
+                Future.delayed(Duration(seconds: 2), () {
+                  if (mounted) {
+                    logDebug('Reset automático após atingir meta');
+                    _reset();
+                  }
+                });
+              }
+            }
+          } catch (e, stackTrace) {
+            logError('Erro no timer do cronômetro', e, stackTrace);
           }
-        }
-      });
+        });
+      }
+      setState(() {});
+    } catch (e, stackTrace) {
+      logException('Erro crítico ao alternar cronômetro', e, stackTrace);
     }
-    setState(() {});
   }
 
   void _reset() {
-    logDebug('Cronômetro reiniciado a partir de ${_fmt(_stopwatch.elapsed)}');
-    _stopwatch.reset();
-    if (mounted) setState(() {});
+    try {
+      logDebug('Cronômetro reiniciado a partir de ${_fmt(_stopwatch.elapsed)}');
+      _stopwatch.reset();
+      if (mounted) setState(() {});
+    } catch (e, stackTrace) {
+      logError('Erro ao resetar cronômetro', e, stackTrace);
+    }
   }
 
   String _fmt(Duration d) {
@@ -87,15 +113,18 @@ class _StopwatchPageState extends State<StopwatchPage> {
   }
 
   void _openTargetDialog() {
-    final controller = TextEditingController(
-      text: targetSeconds?.toString() ?? "",
-    );
+    try {
+      final currentTarget = targetSeconds;
+      final controller = TextEditingController(
+        text: currentTarget?.toString() ?? "",
+      );
+      logInfo('Abrindo modal de meta (meta atual: ${currentTarget ?? "nenhuma"})');
 
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        logInfo('Abrir modal de meta');
-        return AlertDialog(
+      showDialog(
+        context: context,
+        builder: (ctx) {
+          logVerbose('Construindo modal de meta');
+          return AlertDialog(
           title: Text("Definir meta (segundos)"),
           content: TextField(
             controller: controller,
@@ -117,18 +146,32 @@ class _StopwatchPageState extends State<StopwatchPage> {
             ElevatedButton(
               child: Text("Salvar"),
               onPressed: () {
-                final n = int.tryParse(controller.text);
-                if (n != null && n > 0) {
-                  setState(() => targetSeconds = n);
-                  logInfo('Meta definida para $n segundos');
+                try {
+                  final text = controller.text;
+                  logDebug('Tentando salvar meta: "$text"');
+                  final n = int.tryParse(text);
+                  if (n != null && n > 0) {
+                    setState(() => targetSeconds = n);
+                    logInfo('Meta definida para $n segundos');
+                  } else {
+                    logWarning('Valor inválido para meta: "$text"');
+                  }
+                  Navigator.pop(ctx);
+                } catch (e, stackTrace) {
+                  logError('Erro ao salvar meta', e, stackTrace);
+                  Navigator.pop(ctx);
                 }
-                Navigator.pop(ctx);
               },
             )
-          ],
+          ]
         );
       },
-    );
+    ).catchError((error, stackTrace) {
+      logException('Erro crítico ao exibir modal de meta', error, stackTrace);
+    });
+    } catch (e, stackTrace) {
+      logException('Erro ao criar dialog de meta', e, stackTrace);
+    }
   }
 
   Widget _buildTimerDisplay() {

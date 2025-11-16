@@ -14,13 +14,15 @@ class PrimaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
-    final maxWidth = MediaQuery.of(context).size.width * 0.8;
-    final width = maxWidth > 420 ? 420.0 : maxWidth;
+    try {
+      Theme.of(context);
+      final screenWidth = MediaQuery.of(context).size.width;
+      final maxWidth = screenWidth * 0.8;
+      final width = maxWidth > 420 ? 420.0 : maxWidth;
 
-  logVerbose('PrimaryCard criado com largura=$width');
+      logVerbose('PrimaryCard criado (screenWidth=$screenWidth, calculatedWidth=$width, color=$color)');
 
-    return Card(
+      return Card(
       color: color,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 8,
@@ -35,5 +37,18 @@ class PrimaryCard extends StatelessWidget {
         ),
       ),
     );
+    } catch (e, stackTrace) {
+      logError('Erro ao construir PrimaryCard', e, stackTrace);
+      // Retorna um widget de fallback em caso de erro
+      return Card(
+        child: SizedBox(
+          width: 300,
+          height: 420,
+          child: Center(
+            child: Text('Erro ao carregar card'),
+          ),
+        ),
+      );
+    }
   }
 }

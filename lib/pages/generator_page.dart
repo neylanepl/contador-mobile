@@ -5,8 +5,13 @@ import '../state/app_state.dart';
 import '../utils/logger.dart';
 
 class GeneratorPage extends StatelessWidget {
+  GeneratorPage() {
+    logVerbose('GeneratorPage criada');
+  }
+
   @override
   Widget build(BuildContext context) {
+    logVerbose('Construindo GeneratorPage');
     final appState = context.watch<MyAppState>();
     final theme = Theme.of(context);
 
@@ -145,12 +150,14 @@ class GeneratorPage extends StatelessWidget {
   }
 
   void _editStepDialog(BuildContext context, MyAppState appState) {
-    final controller = TextEditingController(text: appState.step.toString());
+    try {
+      final controller = TextEditingController(text: appState.step.toString());
+      logDebug('Controller inicializado com valor: ${appState.step}');
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
           title: Text("Alterar incremento"),
           content: TextField(
             controller: controller,
@@ -174,17 +181,31 @@ class GeneratorPage extends StatelessWidget {
             ElevatedButton(
               child: Text("Salvar"),
               onPressed: () {
-                final n = int.tryParse(controller.text);
-                if (n != null && n > 0) {
-                  appState.setStep(n);
-                  logInfo('Incremento salvo: $n');
+                try {
+                  final text = controller.text;
+                  logDebug('Tentando salvar incremento: "$text"');
+                  final n = int.tryParse(text);
+                  if (n != null && n > 0) {
+                    appState.setStep(n);
+                    logInfo('Incremento salvo com sucesso: $n');
+                  } else {
+                    logWarning('Valor inválido para incremento: "$text"');
+                  }
+                  Navigator.pop(context);
+                } catch (e, stackTrace) {
+                  logError('Erro ao salvar incremento', e, stackTrace);
+                  Navigator.pop(context);
                 }
-                Navigator.pop(context);
               },
             )
           ],
         );
       },
-    );
+    ).catchError((error, stackTrace) {
+      logException('Erro crítico ao exibir modal de incremento', error, stackTrace);
+    });
+    } catch (e, stackTrace) {
+      logException('Erro ao criar modal de incremento', e, stackTrace);
+    }
   }
 }

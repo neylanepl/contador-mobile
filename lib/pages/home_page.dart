@@ -30,6 +30,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     logInfo('MyHomePage inicializada');
+    logVerbose('Páginas disponíveis: ${pageTitles.join(", ")}');
+  }
+
+  @override
+  void dispose() {
+    logDebug('MyHomePage descartada');
+    super.dispose();
   }
 
   @override
@@ -47,9 +54,17 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedIndex,
         onDestinationSelected: (i) {
-          final label = (i >= 0 && i < pageTitles.length) ? pageTitles[i] : 'índice $i';
-          logDebug('Navegação selecionada: $label');
-          setState(() => selectedIndex = i);
+          try {
+            if (i < 0 || i >= pages.length) {
+              logWarning('Tentativa de navegar para índice inválido: $i');
+              return;
+            }
+            final label = pageTitles[i];
+            logDebug('Navegação selecionada: $label (índice $i)');
+            setState(() => selectedIndex = i);
+          } catch (e, stackTrace) {
+            logError('Erro ao navegar entre páginas', e, stackTrace);
+          }
         },
         destinations: [
           NavigationDestination(icon: Icon(Icons.exposure), label: 'Contador'),
