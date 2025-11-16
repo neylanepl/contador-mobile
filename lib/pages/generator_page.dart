@@ -10,84 +10,86 @@ class GeneratorPage extends StatelessWidget {
     final appState = context.watch<MyAppState>();
     final theme = Theme.of(context);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "${appState.counter}",
-              style: TextStyle(
-                fontSize: 72,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Container(
-              width: 260,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                  width: 1,
+    return SingleChildScrollView(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "${appState.counter}",
+                style: TextStyle(
+                  fontSize: 72,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
                 ),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      _gridButton(
-                        context,
-                        icon: Icons.remove,
-                        label: "Diminuir",
-                        onTap: () {
-                          logDebug('Botão diminuir foi pressionado');
-                          appState.decrement();
-                        },
-                        showBottomLine: true,
-                        showRightLine: true,
-                      ),
-                      _gridButton(
-                        context,
-                        icon: Icons.add,
-                        label: "Somar",
-                        onTap: () {
-                          logDebug('Botão somar foi pressionado');
-                          appState.increment();
-                        },
-                        showBottomLine: true,
-                      ),
-                    ],
+              const SizedBox(height: 40),
+              Container(
+                width: 260,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    width: 1,
                   ),
-                  Row(
-                    children: [
-                      _gridButton(
-                        context,
-                        icon: Icons.edit,
-                        label: "Incremento",
-                        onTap: () {
-                          logInfo('Abrir modal de alteração do incremento');
-                          _editStepDialog(context, appState);
-                        },
-                        showRightLine: true,
-                      ),
-                      _gridButton(
-                        context,
-                        icon: Icons.refresh,
-                        label: "Resetar",
-                        onTap: () {
-                          logInfo('Botão reset foi pressionado');
-                          appState.resetCounter();
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        _gridButton(
+                          context,
+                          icon: Icons.remove,
+                          label: "Diminuir",
+                          onTap: () {
+                            logDebug('Botão diminuir foi pressionado');
+                            appState.decrement();
+                          },
+                          showBottomLine: true,
+                          showRightLine: true,
+                        ),
+                        _gridButton(
+                          context,
+                          icon: Icons.add,
+                          label: "Somar",
+                          onTap: () {
+                            logDebug('Botão somar foi pressionado');
+                            appState.increment();
+                          },
+                          showBottomLine: true,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        _gridButton(
+                          context,
+                          icon: Icons.edit,
+                          label: "Incremento",
+                          onTap: () {
+                            logInfo('Abrir modal de alteração do incremento');
+                            _editStepDialog(context, appState);
+                          },
+                          showRightLine: true,
+                        ),
+                        _gridButton(
+                          context,
+                          icon: Icons.refresh,
+                          label: "Resetar",
+                          onTap: () {
+                            logInfo('Botão reset foi pressionado');
+                            appState.resetCounter();
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
