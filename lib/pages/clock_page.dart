@@ -45,7 +45,8 @@ class _ClockPageState extends State<ClockPage> {
           logError('Erro ao atualizar relógio', e, stackTrace);
         }
       });
-      logInfo('Relógio inicializado com fuso $selectedZone (offset: ${zones[selectedZone]}h)');
+      logInfo(
+          'Relógio inicializado com fuso $selectedZone (offset: ${zones[selectedZone]}h)');
     } catch (e, stackTrace) {
       logException('Erro crítico ao inicializar relógio', e, stackTrace);
     }
@@ -117,89 +118,93 @@ class _ClockPageState extends State<ClockPage> {
     final theme = Theme.of(context);
 
     return Center(
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.92,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(height: 20),
-            Align(
-              alignment: Alignment.center,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: DropdownButton<String>(
-                  value: selectedZone,
-                  underline: SizedBox.shrink(),
-                  items: zones.keys
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                      .toList(),
-                  onChanged: (v) {
-                    try {
-                      if (v != null && zones.containsKey(v)) {
-                        final oldZone = selectedZone;
-                        logInfo('Fuso horário alterado: $oldZone -> $v (offset: ${zones[v]}h)');
-                        setState(() => selectedZone = v);
-                      } else {
-                        logWarning('Tentativa de selecionar fuso inválido: $v');
+      child: SingleChildScrollView(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.92,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(height: 20),
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: DropdownButton<String>(
+                    value: selectedZone,
+                    underline: SizedBox.shrink(),
+                    items: zones.keys
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                        .toList(),
+                    onChanged: (v) {
+                      try {
+                        if (v != null && zones.containsKey(v)) {
+                          final oldZone = selectedZone;
+                          logInfo(
+                              'Fuso horário alterado: $oldZone -> $v (offset: ${zones[v]}h)');
+                          setState(() => selectedZone = v);
+                        } else {
+                          logWarning(
+                              'Tentativa de selecionar fuso inválido: $v');
+                        }
+                      } catch (e, stackTrace) {
+                        logError('Erro ao alterar fuso horário', e, stackTrace);
                       }
-                    } catch (e, stackTrace) {
-                      logError('Erro ao alterar fuso horário', e, stackTrace);
-                    }
-                  },
+                    },
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 25),
-            PrimaryCard(
-              color: _colorForPeriod,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(_iconForPeriod, size: 60, color: Colors.white),
-                    SizedBox(height: 10),
-                    Text(
-                      _greeting,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+              SizedBox(height: 25),
+              PrimaryCard(
+                color: _colorForPeriod,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(_iconForPeriod, size: 60, color: Colors.white),
+                      SizedBox(height: 10),
+                      Text(
+                        _greeting,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 15),
-                    Text(
-                      _timeString,
-                      style: theme.textTheme.displayLarge?.copyWith(
-                        fontSize: 52,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                      SizedBox(height: 15),
+                      Text(
+                        _timeString,
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontSize: 52,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      _weekdayString,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontSize: 20,
-                        color: Colors.white,
+                      SizedBox(height: 12),
+                      Text(
+                        _weekdayString,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      _dateString,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: 18,
-                        color: Colors.white70,
+                      SizedBox(height: 6),
+                      Text(
+                        _dateString,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontSize: 18,
+                          color: Colors.white70,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -35,7 +35,8 @@ class _StopwatchPageState extends State<StopwatchPage> {
       _timer?.cancel();
       _stopwatch.stop();
       _confettiController.dispose();
-      logDebug('Cronômetro descartado (tempo final: ${_fmt(_stopwatch.elapsed)})');
+      logDebug(
+          'Cronômetro descartado (tempo final: ${_fmt(_stopwatch.elapsed)})');
     } catch (e, stackTrace) {
       logError('Erro ao descartar cronômetro', e, stackTrace);
     }
@@ -52,7 +53,8 @@ class _StopwatchPageState extends State<StopwatchPage> {
       } else {
         _stopwatch.start();
         final hasTarget = targetSeconds != null;
-        logInfo('Cronômetro iniciado${hasTarget ? ' com meta de ${targetSeconds}s' : ''}');
+        logInfo(
+            'Cronômetro iniciado${hasTarget ? ' com meta de ${targetSeconds}s' : ''}');
         _timer = Timer.periodic(Duration(milliseconds: 30), (_) {
           try {
             if (mounted) setState(() {});
@@ -118,57 +120,57 @@ class _StopwatchPageState extends State<StopwatchPage> {
       final controller = TextEditingController(
         text: currentTarget?.toString() ?? "",
       );
-      logInfo('Abrindo modal de meta (meta atual: ${currentTarget ?? "nenhuma"})');
+      logInfo(
+          'Abrindo modal de meta (meta atual: ${currentTarget ?? "nenhuma"})');
 
       showDialog(
         context: context,
         builder: (ctx) {
           logVerbose('Construindo modal de meta');
           return AlertDialog(
-          title: Text("Definir meta (segundos)"),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: "Meta",
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: Text("Cancelar"),
-              onPressed: () {
-                logDebug('Modal de meta cancelado');
-                Navigator.pop(ctx);
-              },
-            ),
-            ElevatedButton(
-              child: Text("Salvar"),
-              onPressed: () {
-                try {
-                  final text = controller.text;
-                  logDebug('Tentando salvar meta: "$text"');
-                  final n = int.tryParse(text);
-                  if (n != null && n > 0) {
-                    setState(() => targetSeconds = n);
-                    logInfo('Meta definida para $n segundos');
-                  } else {
-                    logWarning('Valor inválido para meta: "$text"');
-                  }
-                  Navigator.pop(ctx);
-                } catch (e, stackTrace) {
-                  logError('Erro ao salvar meta', e, stackTrace);
-                  Navigator.pop(ctx);
-                }
-              },
-            )
-          ]
-        );
-      },
-    ).catchError((error, stackTrace) {
-      logException('Erro crítico ao exibir modal de meta', error, stackTrace);
-    });
+              title: Text("Definir meta (segundos)"),
+              content: TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Meta",
+                ),
+              ),
+              actions: [
+                TextButton(
+                  child: Text("Cancelar"),
+                  onPressed: () {
+                    logDebug('Modal de meta cancelado');
+                    Navigator.pop(ctx);
+                  },
+                ),
+                ElevatedButton(
+                  child: Text("Salvar"),
+                  onPressed: () {
+                    try {
+                      final text = controller.text;
+                      logDebug('Tentando salvar meta: "$text"');
+                      final n = int.tryParse(text);
+                      if (n != null && n > 0) {
+                        setState(() => targetSeconds = n);
+                        logInfo('Meta definida para $n segundos');
+                      } else {
+                        logWarning('Valor inválido para meta: "$text"');
+                      }
+                      Navigator.pop(ctx);
+                    } catch (e, stackTrace) {
+                      logError('Erro ao salvar meta', e, stackTrace);
+                      Navigator.pop(ctx);
+                    }
+                  },
+                )
+              ]);
+        },
+      ).catchError((error, stackTrace) {
+        logException('Erro crítico ao exibir modal de meta', error, stackTrace);
+      });
     } catch (e, stackTrace) {
       logException('Erro ao criar dialog de meta', e, stackTrace);
     }
@@ -231,64 +233,66 @@ class _StopwatchPageState extends State<StopwatchPage> {
           blastDirectionality: BlastDirectionality.explosive,
         ),
         Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSlider(context),
-              const SizedBox(height: 10),
-              if (targetSeconds == null) _buildTimerDisplay(),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    targetSeconds != null
-                        ? "Meta: ${targetSeconds}s"
-                        : "Nenhuma meta definida",
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (targetSeconds != null)
-                    Padding(
-                      padding: EdgeInsets.only(left: 5.0),
-                      child: InkWell(
-                        onTap: () => setState(() => targetSeconds = null),
-                        child: Icon(
-                          Icons.delete,
-                          color: Colors.red,
-                        ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildSlider(context),
+                const SizedBox(height: 10),
+                if (targetSeconds == null) _buildTimerDisplay(),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      targetSeconds != null
+                          ? "Meta: ${targetSeconds}s"
+                          : "Nenhuma meta definida",
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _toggleStartStop,
-                    icon: Icon(
-                      _stopwatch.isRunning ? Icons.pause : Icons.play_arrow,
+                    if (targetSeconds != null)
+                      Padding(
+                        padding: EdgeInsets.only(left: 5.0),
+                        child: InkWell(
+                          onTap: () => setState(() => targetSeconds = null),
+                          child: Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _toggleStartStop,
+                      icon: Icon(
+                        _stopwatch.isRunning ? Icons.pause : Icons.play_arrow,
+                      ),
+                      label: Text(_stopwatch.isRunning ? "Pausar" : "Iniciar"),
                     ),
-                    label: Text(_stopwatch.isRunning ? "Pausar" : "Iniciar"),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _reset,
-                    icon: Icon(Icons.refresh),
-                    label: Text("Resetar"),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _openTargetDialog,
-                    icon: Icon(Icons.flag_outlined),
-                    label: Text("Meta"),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: _reset,
+                      icon: Icon(Icons.refresh),
+                      label: Text("Resetar"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: _openTargetDialog,
+                      icon: Icon(Icons.flag_outlined),
+                      label: Text("Meta"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ],

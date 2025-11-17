@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
         return MyAppState();
       },
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Contador',
         theme: ThemeData(
           useMaterial3: true,
